@@ -19,7 +19,7 @@ namespace ShortLinks.Services
             _links = database.GetCollection<Link>(settings.LinksCollectionName);
         }
 
-        public Task<string> CreateShortLink(string link, string sessionId)
+        public async Task<string> CreateShortLinkAsync(string link, string sessionId)
         {
             if (!Utils.CheckUrlValid(link)) throw new Exceptions.ApiException("введите ссылку в правильном формате");
             var newLink = new Link
@@ -29,27 +29,33 @@ namespace ShortLinks.Services
                 ViewCounter = 0,
                 SessionId = sessionId
             };
-            _links.InsertOne(newLink);
-            return Task.FromResult( Utils.GetLinkWithDomain(newLink.ShortLink));
+            await _links.InsertOneAsync(newLink);
+            return newLink.ShortLink;
         }
 
-        public Task<IEnumerable<ShortLink>> GetAllShortLink(string sessionId = null)
+        public async Task<IEnumerable<ShortLink>> GetAllShortLinkAsync(string sessionId = null)
         {
-            var linkResult = sessionId == null ? _links.Find(i => true).ToEnumerable() 
-                                                : _links.Find(i => i.SessionId == sessionId).ToEnumerable();
-            return Task.FromResult(linkResult.Select(i => new ShortLink {
+            var builder = Builders<Link>.Filter;
+            var filter = sessionId == null ? builder.Empty :  builder.Eq("SessionId", sessionId);
+            var linkResult = await _links.Find(filter).ToListAsync();
+            return linkResult.Select(i => new ShortLink {
                 Link = Utils.GetLinkWithDomain(i.ShortLink),
                 ViewCounter = i.ViewCounter
-            }));
+            });
         }
 
-        public Task<string> GetLink(string shortLink)
+        public async Task<string> GetLinkAsync(string shortLink)
         {
-            var link = _links.Find(i => i.ShortLink == shortLink).FirstOrDefault();
-            if (link == null) throw new Exceptions.NotFoundException("ссылка не найдена");
-            link.ViewCounter++;
-            _links.ReplaceOne(i => i.Id == link.Id, link);
-            return Task.FromResult(link?.OriginalLink);
+            if (string.IsNullOrEmpty(shortLink)) throw new ArgumentNullException("shortLink");
+
+            var link = await _links.FindOneAndUpdateAsync(Builders<Link>.Filter.Eq("ShortLink", shortLink),
+                                Builders<Link>.Update.Inc("ViewCounter", 1),
+                                new FindOneAndUpdateOptions<Link, Link>
+                                {
+                                    IsUpsert = false,
+                                    ReturnDocument = ReturnDocument.After
+                                });
+            return link?.OriginalLink;
         }
     }
 }

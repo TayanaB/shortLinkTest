@@ -21,7 +21,7 @@ namespace ShortLinks.Controllers
         [HttpPost("сreateShortLink/{link}")]
         public async Task<string> CreateShortLink([FromServices] IShortLinksService linkService, string link, string sessionId = null)
         {
-            return await linkService.CreateShortLink(link, sessionId);
+            return await linkService.CreateShortLinkAsync(link, sessionId);
 
         }
 
@@ -33,7 +33,7 @@ namespace ShortLinks.Controllers
         [HttpGet("GetLink/{shortLink}")]
         public async Task<string> GetLink([FromServices] IShortLinksService linkService, string shortLink)
         {
-            return await linkService.GetLink(shortLink);
+            return await linkService.GetLinkAsync(shortLink);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace ShortLinks.Controllers
         [HttpGet("GetAllShortLink")]
         public async Task<IEnumerable<ShortLink>> GetAllShortLink([FromServices] IShortLinksService linkService, string sessionId = null)
         {
-            return await linkService.GetAllShortLink(sessionId);
+            return await linkService.GetAllShortLinkAsync(sessionId);
         }
     }
 }

@@ -14,20 +14,20 @@ namespace ShortLinks.Services
         /// <param name="link"></param>
         /// <param name="sessionId"></param>
         /// <returns></returns>
-        Task<string> CreateShortLink(string link, string sessionId);
+        Task<string> CreateShortLinkAsync(string link, string sessionId);
 
         /// <summary>
         /// получение оригинала по сокращенной, с увеличением счетчика посещений
         /// </summary>
         /// <param name="shortLink"></param>
         /// <returns></returns>
-        Task<string> GetLink(string shortLink);
+        Task<string> GetLinkAsync(string shortLink);
 
         /// <summary>
         /// получение списка всех сокращенных ссылок с количеством переходов
         /// </summary>
         /// <param name="sessionId"></param>
         /// <returns></returns>
-        Task<IEnumerable<ShortLink>> GetAllShortLink(string sessionId);
+        Task<IEnumerable<ShortLink>> GetAllShortLinkAsync(string sessionId);
     }
 }
